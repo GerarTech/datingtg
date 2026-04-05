@@ -1,0 +1,24 @@
+// Instructions for webhook.site setup
+console.log('🌐 webhook.site Setup Instructions');
+console.log('=====================================');
+console.log('');
+console.log('1. Go to your webhook.site URL:');
+console.log('   https://webhook.site/3a83251c-d05b-4b2c-be1e-75614a3f6370/telegram-webhook');
+console.log('');
+console.log('2. Click "Edit" or "Settings" button');
+console.log('3. Find "Forward URL" or "Target URL" field');
+console.log('4. Enter: http://127.0.0.1:3001/telegram-webhook');
+console.log('5. Save the configuration');
+console.log('');
+console.log('🎯 Your server is already running on port 3001');
+console.log('📡 Health check: http://127.0.0.1:3001/health');
+console.log('');
+console.log('✅ After setting this up:');
+console.log('   - Send /start to your bot');
+console.log('   - It should respond with welcome message');
+console.log('   - Check your server console for webhook requests');
+console.log('');
+console.log('🚀 Alternative: Use a different tunneling service');
+console.log('   - ngrok (requires auth signup)');
+console.log('   - localtunnel.online');
+console.log('   - deploy to Vercel/Railway for permanent URL');

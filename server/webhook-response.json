@@ -1,0 +1,5 @@
+{
+  "method": "answerCallbackQuery",
+  "callback_query_id": "auto_callback",
+  "text": "✅ Webhook is configured! Your Yene Dating Bot is now active."
+}
