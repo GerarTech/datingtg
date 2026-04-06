@@ -17,8 +17,10 @@ import {
   Flag,
   Link2,
   Settings,
+  Palette,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ColorSchemeEditor } from './admin/ColorSchemeEditor';
 import {
   getPremiumConfig,
   setPremiumConfig,
@@ -64,7 +66,7 @@ type AdminUser = {
   verificationStatus?: 'unverified' | 'pending' | 'verified';
 };
 
-type Tab = 'overview' | 'verifications' | 'users' | 'subscribed' | 'reports' | 'app' | 'icebreakers' | 'pricing' | 'packages' | 'payment' | 'telegram' | 'settings';
+type Tab = 'overview' | 'verifications' | 'users' | 'subscribed' | 'reports' | 'app' | 'icebreakers' | 'pricing' | 'packages' | 'payment' | 'telegram' | 'settings' | 'colors';
 
 export const Admin: React.FC = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
@@ -109,6 +111,9 @@ export const Admin: React.FC = () => {
     gender: 'all',
     sortBy: 'joinedAt'
   });
+
+  // Color scheme editor state
+  const [showColorSchemeEditor, setShowColorSchemeEditor] = useState(false);
 
   // Filter users based on current filters
   const filteredUsers = allUsers.filter(user => {
@@ -501,6 +506,7 @@ export const Admin: React.FC = () => {
     { id: 'payment' as const, label: 'Payment APIs', icon: Settings },
     { id: 'telegram' as const, label: 'Telegram Bot', icon: MessageCircle },
     { id: 'settings' as const, label: 'System Settings', icon: Settings },
+    { id: 'colors' as const, label: 'Color Scheme', icon: Palette },
   ];
 
   return (
@@ -1720,6 +1726,102 @@ export const Admin: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'colors' && (
+        <div className="max-w-4xl">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Color Scheme Management</h2>
+            <p className="text-white/60 text-sm">
+              Customize your app's appearance across all pages. Changes are applied instantly and saved locally.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="bg-[#080b14] rounded-2xl border border-white/10 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF8C00] to-[#FF6B6B] flex items-center justify-center">
+                  <Palette className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-medium">Color Editor</h3>
+                  <p className="text-white/60 text-xs">Open advanced editor</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowColorSchemeEditor(true)}
+                className="w-full py-3 rounded-xl bg-[#FF8C00] text-white font-medium hover:bg-[#FF8C00]/90 transition-all"
+              >
+                Open Color Editor
+              </button>
+            </div>
+
+            <div className="bg-[#080b14] rounded-2xl border border-white/10 p-6">
+              <h3 className="text-white font-medium mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button className="w-full py-2 px-4 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 transition-all text-left text-sm">
+                  Reset to Default Colors
+                </button>
+                <button className="w-full py-2 px-4 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 transition-all text-left text-sm">
+                  Export Color Scheme
+                </button>
+                <button className="w-full py-2 px-4 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 transition-all text-left text-sm">
+                  Import Color Scheme
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-[#080b14] rounded-2xl border border-white/10 p-6">
+              <h3 className="text-white font-medium mb-4">Current Scheme Info</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-white/60">Primary:</span>
+                  <span className="text-white/80 font-mono">#0B0D14</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Accent:</span>
+                  <span className="text-white/80 font-mono">#FF8C00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Text:</span>
+                  <span className="text-white/80 font-mono">#FFFFFF</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#080b14] rounded-2xl border border-white/10 p-6">
+            <h3 className="text-white font-medium mb-4">Preview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-[#FF8C00] text-white">
+                  <p className="font-medium">Primary Button</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/10 border border-white/20 text-white">
+                  <p className="font-medium">Secondary Button</p>
+                </div>
+                <div className="p-4 rounded-xl bg-[#0B0D14] text-white">
+                  <p className="font-medium">Background Card</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-[#10B981] text-white">
+                  <p className="font-medium">Success Message</p>
+                </div>
+                <div className="p-4 rounded-xl bg-[#EF4444] text-white">
+                  <p className="font-medium">Error Message</p>
+                </div>
+                <div className="p-4 rounded-xl bg-[#3B82F6] text-white">
+                  <p className="font-medium">Info Message</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showColorSchemeEditor && (
+        <ColorSchemeEditor onClose={() => setShowColorSchemeEditor(false)} />
       )}
 
       {selectedSelfie && (

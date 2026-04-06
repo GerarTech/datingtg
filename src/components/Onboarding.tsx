@@ -6,19 +6,21 @@ import { registerSignedUpUser, getInterestTags } from '../lib/appSettings';
 import { useLocalDataRevision } from '../hooks/useLocalDataRevision';
 import { hapticFeedback, hapticSuccess, cn, getTelegramWebApp } from '../lib/utils';
 import { AgePicker } from '@/components/ui/AgePicker';
-import { Camera, ChevronRight } from 'lucide-react';
+import { AgeSelectionScreen } from '@/components/onboarding/AgeSelectionScreen';
+import { GenderSelectionScreen } from '@/components/onboarding/GenderSelectionScreen';
+import { ProfessionalAgeSelectionScreen } from '@/components/onboarding/ProfessionalAgeSelectionScreen';
+import { ProfessionalGenderSelectionScreen } from '@/components/onboarding/ProfessionalGenderSelectionScreen';
+import { Camera, ChevronRight, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 const steps = [
   { id: 'name', title: "What's your name?", subtitle: "This will be shown on your profile." },
   { id: 'username', title: "Choose a username", subtitle: "This will be used as your profile URL." },
   { id: 'age', title: "How old are you?", subtitle: "You must be 18 or older to use Yene." },
-  { id: 'gender', title: "I am a...", subtitle: "Select your gender and interests." },
+  { id: 'gender', title: "I am a...", subtitle: "Select your gender." },
+  { id: 'interests', title: "Interests", subtitle: "Select your interests." },
   { id: 'intent', title: "What are you looking for?", subtitle: "We'll prioritize people who want something similar. You can change this later." },
   { id: 'contact', title: "Phone Number", subtitle: "We'll use this for account verification." },
-  { id: 'location', title: "Where are you?", subtitle: "We'll find matches near you." },
-  { id: 'bio', title: "Tell us about you", subtitle: "A short bio helps people start a conversation." },
-  { id: 'photo', title: "Add a photo", subtitle: "Profiles with photos get 3x more matches." }
 ];
 
 export const Onboarding: React.FC = () => {
@@ -135,24 +137,26 @@ export const Onboarding: React.FC = () => {
     } else if (step === 6 && !formData.location?.trim()) {
       toast.error('Please enter your location');
       return;
-    }
-
-    if (step < steps.length - 1) {
-      setStep(step + 1);
-    } else {
+    } else if (step === 7) {
       const primaryPhoto = (formData.photo || '').trim();
       if (!primaryPhoto) {
         toast.error('Add a profile photo', { description: 'A clear photo is required to use Yene.' });
         return;
       }
+    }
+
+    if (step < steps.length - 1) {
+      setStep(step + 1);
+    } else {
+      // Final step - create user
       const idBase = (formData.name || 'user').split(' ')[0].toLowerCase();
       const uid = `${idBase}-${Math.random().toString(36).substr(2, 9)}`;
       const today = new Date().toISOString().slice(0, 10);
       const newUser = {
         ...formData,
         id: uid,
-        photo: primaryPhoto,
-        photos: [primaryPhoto],
+        photo: formData.photo || '',
+        photos: [formData.photo || ''],
         likesUsedToday: 0,
         lastLikeResetDate: today,
         cardsSeenToday: 0,
@@ -179,6 +183,12 @@ export const Onboarding: React.FC = () => {
 
   const updateFormData = (key: keyof UserProfile, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const prevStep = () => {
+    if (step > 0) {
+      setStep(step - 1);
+    }
   };
 
   const handleContinueWithTelegram = () => {
@@ -312,31 +322,35 @@ export const Onboarding: React.FC = () => {
             )}
 
             {step === 2 && (
-              <AgePicker 
-                value={formData.age || 24}
-                onChange={(age) => updateFormData('age', age)}
-                className="max-w-md mx-auto"
+              <ProfessionalAgeSelectionScreen 
+                onNext={(age) => {
+                  updateFormData('age', age);
+                  nextStep();
+                }}
+                onBack={prevStep}
               />
             )}
 
             {step === 3 && (
+              <ProfessionalGenderSelectionScreen 
+                onNext={(gender) => {
+                  updateFormData('gender', gender);
+                  nextStep();
+                }}
+                onBack={prevStep}
+              />
+            )}
+
+            {step === 4 && (
               <div className="space-y-8">
-                <div className="flex gap-2">
-                  {['Woman', 'Man', 'Non-binary'].map(g => (
-                    <button
-                      key={g}
-                      onClick={() => updateFormData('gender', g)}
-                      className={cn(
-                        "flex-1 py-3 rounded-2xl text-sm font-bold transition-all",
-                        formData.gender === g 
-                          ? "bg-[#FF8C00] text-white" 
-                          : "bg-white/5 text-white/60 border border-white/10"
-                      )}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
+                {/* Back Button */}
+                <button
+                  onClick={prevStep}
+                  className="mb-4 flex items-center gap-2 text-white/60 hover:text-white/80 transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  Back
+                </button>
                 
                 <div className="space-y-4">
                   <p className="text-sm font-bold text-white/40 uppercase tracking-widest">Interests</p>
@@ -362,17 +376,18 @@ export const Onboarding: React.FC = () => {
                     <div className="flex flex-wrap gap-2">
                       {interestOptions
                         .filter((t) => !formData.interests?.includes(t))
-                        .map((interest) => (
+                        .map((tag) => (
                           <button
-                            key={interest}
+                            key={tag}
                             type="button"
                             onClick={() => {
                               const interests = formData.interests || [];
-                              updateFormData('interests', [...interests, interest]);
+                              updateFormData('interests', [...interests, tag]);
                             }}
-                            className="px-4 py-2 rounded-full text-xs font-semibold bg-white/5 text-white/70 border border-white/10"
+                            className="shrink-0 inline-flex items-center gap-1.5 pl-3 pr-2 py-2 rounded-full text-xs font-bold text-white/80 bg-white/10 border border-white/20 hover:bg-white/20 transition-colors"
                           >
-                            {interest}
+                            {tag}
+                            <span className="opacity-90">+</span>
                           </button>
                         ))}
                     </div>
@@ -381,15 +396,24 @@ export const Onboarding: React.FC = () => {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="space-y-3">
+                {/* Back Button */}
+                <button
+                  onClick={prevStep}
+                  className="mb-4 flex items-center gap-2 text-white/60 hover:text-white/80 transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  Back
+                </button>
+                
                 <p className="text-sm text-white/50 mb-4">Be honest — it helps us show you better matches.</p>
                 {(
                   [
                     { id: 'serious' as DatingIntent, label: 'Relationship', sub: 'Something meaningful' },
                     { id: 'casual' as DatingIntent, label: 'Casual dating', sub: 'See where it goes' },
                     { id: 'friends' as DatingIntent, label: 'Friends first', sub: 'Connection without pressure' },
-                    { id: 'open' as DatingIntent, label: 'Open / exploring', sub: 'I’m still figuring it out' },
+                    { id: 'open' as DatingIntent, label: 'Open / exploring', sub: "I'm still figuring it out" },
                   ] as const
                 ).map((opt) => (
                   <button
@@ -410,7 +434,7 @@ export const Onboarding: React.FC = () => {
               </div>
             )}
 
-            {step === 5 && (
+            {step === 6 && (
               <div className="space-y-6">
                 <div>
                   <label className="text-sm font-bold text-white/40 uppercase tracking-widest mb-3 block">Phone Number</label>
@@ -436,7 +460,7 @@ export const Onboarding: React.FC = () => {
               </div>
             )}
 
-            {step === 6 && (
+            {step === 7 && (
               <div className="flex flex-col items-center justify-center pt-4">
                 <input
                   type="text"
