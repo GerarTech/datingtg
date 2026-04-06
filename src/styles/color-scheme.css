@@ -1,0 +1,87 @@
+/* Color Scheme CSS Variables */
+:root {
+  /* Primary backgrounds */
+  --color-primary: #0B0D14;
+  --color-secondary: #151821;
+  --color-tertiary: #1A1D29;
+  
+  /* Accent colors */
+  --color-accent: #FF8C00;
+  --color-accent-secondary: #FF6B6B;
+  
+  /* Text colors */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.8);
+  --color-text-tertiary: rgba(255, 255, 255, 0.4);
+  
+  /* UI elements */
+  --color-background: #0B0D14;
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Status colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+  
+  /* Gradients */
+  --color-primary-gradient: from-[#0B0D14] to-[#151821];
+  --color-accent-gradient: from-[#FF8C00] to-[#FF6B6B];
+  --color-background-gradient: from-[#667eea] via-[#764ba2] to-[#667eea];
+  
+  /* Telegram specific */
+  --color-telegram-header: #0B0D14;
+  --color-telegram-background: #0B0D14;
+}
+
+/* Utility classes that use CSS variables */
+.bg-primary { background-color: var(--color-primary); }
+.bg-secondary { background-color: var(--color-secondary); }
+.bg-tertiary { background-color: var(--color-tertiary); }
+.bg-surface { background-color: var(--color-surface); }
+
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
+
+.text-accent { color: var(--color-accent); }
+.bg-accent { background-color: var(--color-accent); }
+.border-accent { border-color: var(--color-accent); }
+
+.border-default { border-color: var(--color-border); }
+.overlay { background-color: var(--color-overlay); }
+
+.bg-primary-gradient { background: var(--color-primary-gradient); }
+.bg-accent-gradient { background: var(--color-accent-gradient); }
+.bg-background-gradient { background: var(--color-background-gradient); }
+
+/* Status colors */
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-error { color: var(--color-error); }
+.text-info { color: var(--color-info); }
+
+.bg-success { background-color: var(--color-success); }
+.bg-warning { background-color: var(--color-warning); }
+.bg-error { background-color: var(--color-error); }
+.bg-info { background-color: var(--color-info); }
+
+/* Dynamic gradient classes */
+.dynamic-gradient-primary {
+  background: linear-gradient(to bottom right, var(--color-primary), var(--color-secondary));
+}
+
+.dynamic-gradient-accent {
+  background: linear-gradient(to bottom right, var(--color-accent), var(--color-accent-secondary));
+}
+
+.dynamic-gradient-background {
+  background: var(--color-background-gradient);
+}
+
+/* Transition for smooth color changes */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
