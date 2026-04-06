@@ -1,11 +1,26 @@
 const express = require('express');
 const cors = require('cors');
+const { createTelegramAuthMiddleware } = require('./middleware/telegramAuth');
+const { seenTrackerMiddleware } = require('./middleware/seenTracker');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Load bot token from environment variables
+const BOT_TOKEN = process.env.BOT_TOKEN;
+if (!BOT_TOKEN) {
+  console.error('BOT_TOKEN environment variable is required');
+  process.exit(1);
+}
+
+// Create Telegram auth middleware
+const telegramAuth = createTelegramAuthMiddleware(BOT_TOKEN);
+
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
+
+// Apply seen tracking middleware
+app.use(seenTrackerMiddleware);
 
 // In-memory demo data. Replace with a real database in production.
 let profiles = [];
@@ -21,14 +36,19 @@ function upsertProfile(profile) {
   }
 }
 
-// List profiles with basic filters
-app.get('/api/profiles', (req, res) => {
+// List profiles with basic filters - PROTECTED
+app.get('/api/profiles', telegramAuth, async (req, res) => {
   const {
     ageMin,
     ageMax,
     gender,
     distance,
   } = req.query;
+
+  const userId = req.telegramUser?.id;
+  if (!userId) {
+    return res.status(401).json({ error: 'User authentication required' });
+  }
 
   let result = profiles;
 
@@ -55,17 +75,80 @@ app.get('/api/profiles', (req, res) => {
     });
   }
 
+  try {
+    // Filter out already seen and swiped profiles
+    if (req.seenTracker) {
+      result = await req.seenTracker.filterUnseen(result);
+    }
+  } catch (error) {
+    console.error('Error filtering unseen profiles:', error);
+    // Continue with unfiltered results if seen tracking fails
+  }
+
   res.json(result);
 });
 
-// Upsert user profile (called from onboarding or profile save)
-app.post('/api/users', (req, res) => {
+// Upsert user profile (called from onboarding or profile save) - PROTECTED
+app.post('/api/users', telegramAuth, (req, res) => {
   const user = req.body;
   if (!user || !user.id) {
     return res.status(400).json({ error: 'User id is required' });
   }
+  
+  // Ensure the authenticated user matches the user being updated
+  if (req.telegramUser && req.telegramUser.id !== user.id) {
+    return res.status(403).json({ error: 'Forbidden: Cannot update other users' });
+  }
+  
   upsertProfile(user);
   res.json(user);
+});
+
+// Track swipe action - PROTECTED
+app.post('/api/swipe', telegramAuth, async (req, res) => {
+  const { profileId, direction } = req.body; // direction: 'left' or 'right'
+  const userId = req.telegramUser?.id;
+  
+  if (!userId) {
+    return res.status(401).json({ error: 'User authentication required' });
+  }
+  
+  if (!profileId || !direction) {
+    return res.status(400).json({ error: 'profileId and direction are required' });
+  }
+  
+  try {
+    if (req.seenTracker) {
+      await req.seenTracker.addSwiped(profileId, direction);
+      await req.seenTracker.addSeen(profileId); // Also mark as seen
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error tracking swipe:', error);
+    res.status(500).json({ error: 'Failed to track swipe' });
+  }
+});
+
+// Get user statistics - PROTECTED
+app.get('/api/user/stats', telegramAuth, async (req, res) => {
+  const userId = req.telegramUser?.id;
+  
+  if (!userId) {
+    return res.status(401).json({ error: 'User authentication required' });
+  }
+  
+  try {
+    if (req.seenTracker) {
+      const stats = await req.seenTracker.getStats();
+      res.json(stats);
+    } else {
+      res.json({ seenCount: 0, swipedCount: 0, uniqueProfiles: 0 });
+    }
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    res.status(500).json({ error: 'Failed to get user stats' });
+  }
 });
 
 app.get('/api/users/:id', (req, res) => {
@@ -74,11 +157,16 @@ app.get('/api/users/:id', (req, res) => {
   res.json(user);
 });
 
-// Verification requests
-app.post('/api/verification-requests', (req, res) => {
+// Verification requests - PROTECTED
+app.post('/api/verification-requests', telegramAuth, (req, res) => {
   const { userId, selfieDataUrl } = req.body;
   if (!userId || !selfieDataUrl) {
     return res.status(400).json({ error: 'userId and selfieDataUrl are required' });
+  }
+
+  // Ensure the authenticated user matches the user making the request
+  if (req.telegramUser && req.telegramUser.id.toString() !== userId) {
+    return res.status(403).json({ error: 'Forbidden: Cannot create verification requests for other users' });
   }
 
   const id = Date.now().toString();

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import type { ProfileViewLocationState } from '../lib/profileNavigation';
 import { getPremiumConfig } from '../lib/appSettings';
 import { calculateDistance, formatDistance } from '../lib/distance';
+import { OptimizedImage } from './ui/OptimizedImage';
 
 export const Discovery: React.FC = () => {
   const {
@@ -20,8 +21,6 @@ export const Discovery: React.FC = () => {
     reportUser,
     blockUser,
     recordCardSeen,
-    hapticFeedback,
-    hapticSuccess,
     likesRemaining,
     tryConsumeLike,
     showMatchOverlay,
@@ -335,14 +334,18 @@ const SwipeCard: React.FC<{ profile: UserProfile, blurPhoto?: boolean, onSwipe: 
       whileTap={{ cursor: "grabbing" }}
     >
       <div className="relative h-full min-h-[min(22rem,calc(100dvh-12rem))] w-full rounded-[24px] sm:rounded-[34px] overflow-hidden bg-[#151821] shadow-[0_24px_60px_rgba(0,0,0,0.8)] border border-white/5">
-        {/* Background image */}
-        <img 
+        {/* Optimized background image */}
+        <OptimizedImage 
           src={profile.photo} 
-          alt={profile.name} 
+          alt={profile.name}
           className={cn(
             'absolute inset-0 w-full h-full object-cover object-center scale-105 transition-[filter]',
             blurPhoto && 'blur-xl scale-110'
           )}
+          width={400}
+          height={600}
+          priority={isTop} // Load top card immediately
+          sizes="(max-width: 640px) 100vw, 50vw"
         />
 
         {/* Vignette + gradients */}
@@ -594,7 +597,13 @@ const InfoModal: React.FC<{
         <Dialog.Content className="fixed bottom-0 left-0 right-0 bg-[#0B0D14] border-t border-white/10 rounded-t-[40px] z-[101] flex flex-col max-h-[85vh] p-0 focus:outline-none">
           <InfoModalSheet onClose={onClose}>
           <div className="text-center mb-8">
-            <img src={profile.photo} alt={profile.name} className="w-24 h-24 rounded-2xl mx-auto mb-4 object-cover" />
+            <OptimizedImage 
+              src={profile.photo} 
+              alt={profile.name} 
+              width={96}
+              height={96}
+              className="w-24 h-24 rounded-2xl mx-auto mb-4 object-cover"
+            />
             <h2 className="text-2xl font-black text-white">{profile.name}, {profile.age}</h2>
             <p className="text-white/60">{profile.bio}</p>
           </div>

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
+import { useTelegram } from '@/hooks/useTelegram';
 
 interface AgeSelectionScreenProps {
   onNext?: (age: number) => void;
@@ -27,6 +28,7 @@ declare global {
 export function AgeSelectionScreen({ onNext, onBack }: AgeSelectionScreenProps) {
   const navigate = useNavigate();
   const { updateUser } = useApp();
+  const { hapticFeedback, hapticSuccess } = useTelegram();
   const [selectedAge, setSelectedAge] = useState(24);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -95,9 +97,7 @@ export function AgeSelectionScreen({ onNext, onBack }: AgeSelectionScreenProps) 
     }
     
     // Haptic feedback
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.selectionChanged();
-    }
+    hapticFeedback();
   };
 
   // Continue to next screen
@@ -106,9 +106,7 @@ export function AgeSelectionScreen({ onNext, onBack }: AgeSelectionScreenProps) 
     updateUser({ age: selectedAge });
     
     // Haptic feedback
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-    }
+    hapticSuccess();
     
     // Navigate
     if (onNext) {

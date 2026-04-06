@@ -14,6 +14,7 @@ import { WhoLikedYou } from './components/WhoLikedYou';
 import { MatchOverlay } from './components/MatchOverlay';
 import { MessageCircle, User, Zap } from 'lucide-react';
 import { cn, getTelegramWebApp } from './lib/utils';
+import { TelegramTheme } from './utils/telegram';
 
 const Navigation: React.FC = () => {
   const { view, setView } = useApp();
@@ -140,6 +141,11 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Initialize Telegram theme on app startup
+  useEffect(() => {
+    TelegramTheme.initialize();
+  }, []);
+
   return (
     <Router>
       <AppProvider>

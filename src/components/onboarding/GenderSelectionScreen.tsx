@@ -3,6 +3,7 @@ import { ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
+import { useTelegram } from '@/hooks/useTelegram';
 
 interface GenderSelectionScreenProps {
   onNext?: (gender: string) => void;
@@ -26,6 +27,7 @@ declare global {
 export function GenderSelectionScreen({ onNext, onBack }: GenderSelectionScreenProps) {
   const navigate = useNavigate();
   const { updateUser } = useApp();
+  const { hapticFeedback, hapticSuccess } = useTelegram();
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
 
   const genderOptions = [
@@ -48,9 +50,7 @@ export function GenderSelectionScreen({ onNext, onBack }: GenderSelectionScreenP
     setSelectedGender(gender);
     
     // Light haptic feedback
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.selectionChanged();
-    }
+    hapticFeedback();
   };
 
   // Continue to next screen
@@ -61,15 +61,13 @@ export function GenderSelectionScreen({ onNext, onBack }: GenderSelectionScreenP
     updateUser({ gender: selectedGender });
     
     // Success haptic feedback
-    if (window.Telegram?.WebApp?.HapticFeedback) {
-      window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-    }
+    hapticSuccess();
     
     // Navigate
     if (onNext) {
       onNext(selectedGender);
     } else {
-      navigate('/onboarding/interests');
+      navigate('/onboarding/photo');
     }
   };
 
